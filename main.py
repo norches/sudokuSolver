@@ -42,56 +42,46 @@ for cl in range(0,base):
 ary=np.zeros(shape=(base**2,base**2)).astype(int)
 numbers=[1,2,3,4,5,6,7,8,9]
 indecies=[0,1,2,3,4,5,6,7,8]
-shuffledRows=random.sample(indecies, len(numbers))
-shuffledColumns=random.sample(indecies, len(numbers))
 
 reset=True
 attempt=1
 bestProgress=8
 
-def generateValidGrid():
-    global reset
-    global attempt
-    global bestProgress
-    global ary
-    ary=np.zeros(shape=(base**2,base**2)).astype(int)
-    print("attempt #{}".format(attempt))
-    print("bestProgress:{}/81".format(bestProgress))
-    reset=False
+#By Solving empty grid you are essentially generating it
+def solveGrid(grid):
+    shuffledNumbers=list(range(1,10))
+    random.shuffle(shuffledNumbers)
+    shuffledX=list(range(9))
+    random.shuffle(shuffledX)
+    shuffledY=list(range(9))
+    random.shuffle(shuffledY)
+    def possible(y,x,n):
+        for i in range(9):
+            if grid[y][i] == n:
+                return False
+        for i in range(9):
+            if grid[i][x] == n:
+                return False
+        x0=(x//3)*3
+        y0=(y//3)*3
+        for i in range(3):
+            for j in range(3):
+                if grid[y0+i][x0+j] == n:
+                    return False
+        return True
 
+    def solveCell():
+        for y in shuffledY:
+            for x in shuffledX:
+                if grid[y][x] == 0:
+                    for n in shuffledNumbers:
+                        if possible(y,x,n):
+                            grid[y][x] = n
+                            solveCell()
+                            grid[y][x] = 0
+                    return
+        pprintN(grid)
+        return True
+    solveCell()
 
-    attempt+=1
-    currentProgress=0
-    #populate rest rows
-    for column in shuffledColumns:       
-        for row in shuffledRows:
-            #starting at second row
-            possibleNumbers = numbers.copy()
-            #remove impossible numbers for this column row square position
-            if bestProgress < currentProgress:
-                    bestProgress = currentProgress
-            for n in range(0,9):
-                #check rows and columns
-                if ary[row][n] in possibleNumbers:
-                    possibleNumbers.remove(ary[row][n])
-                if ary[n][column] in possibleNumbers:
-                    possibleNumbers.remove(ary[n][column])
-            sqRow=computeGroup(row)
-            sqColumn=computeGroup(column)
-            
-            for cell in squares[sqRow][sqColumn]:
-                if ary[cell[0]][cell[1]] in possibleNumbers:
-                    possibleNumbers.remove(ary[cell[0]][cell[1]])
-            if not possibleNumbers:
-                reset=True
-                break
-            else:
-                ary[row][column]=random.choice(possibleNumbers)
-            currentProgress+=1
-        if reset==True:
-            break
-    else:
-        reset=False
-while reset==True:
-    generateValidGrid()
-pprintN(ary)
+solveGrid(ary)
